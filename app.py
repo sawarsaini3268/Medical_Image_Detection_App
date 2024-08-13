@@ -1,23 +1,19 @@
-#import necessary modules
 import streamlit as st
-from pathlib import Path 
 import google.generativeai as genai
-
 from api_key import api_key
 
-#configure genai with api key
+# Configure genai with API key
 genai.configure(api_key=api_key)
 
 generation_config = {
-  "temperature": 0.4,
-  "top_p": 0.95,
-  "top_k": 64,
-  "max_output_tokens": 8192,
-  "response_mime_type": "text/plain",
+    "temperature": 0.4,
+    "top_p": 0.95,
+    "top_k": 64,
+    "max_output_tokens": 8192,
+    "response_mime_type": "text/plain",
 }
 
 system_prompt = """
-
 As a highly skilled medical practitioner specializing in image analysis, you are tasked with examining medical images for a renowned hospital. Your
 expertise is crucial in identifying any anomalies, diseases, or health issues that may be present in the images.
 
@@ -35,60 +31,49 @@ Important Notes:
 provided image.'
 3. Disclaimer: Accompany your analysis with the disclaimer: "Consult with a Doctor before making any decisions."
 
-4. Your insights are invaluable in guiding clinical decisions. Please proceed with the analysis, adhering to the structured approach outlined above
-
-Please provide me an output response with these 4 headings Detailed Analysis, Findings Reports, Reccomendations and Next Steps, Treatment Suggestions
+Your insights are invaluable in guiding clinical decisions. Please proceed with the analysis, adhering to the structured approach outlined above.
 """
 
-#model configuration 
+# Model configuration 
 model = genai.GenerativeModel(
-  model_name="gemini-pro-vision",
-  generation_config=generation_config)
-  #saftey_settings=saftey_settings
+    model_name="gemini-pro-vision",
+    generation_config=generation_config
+)
 
-
-#set the page configuration 
-
+# Set the page configuration 
 st.set_page_config(page_title="VitalImage Analytics", page_icon=":robot:")
 
-#set the logo [can do this later] 
-
-#set the title 
-
+# Set the title 
 st.title("👩‍⚕️ Vital❤️Image📷 Analytics📊 🩺")
 
-#set the subtitle
-
+# Set the subtitle
 st.subheader("An application that can help users to identify medical images")
-uploaded_file = st.file_uploader("Upload the medical image for analysis", type=["png", "jpg","jpeg"])
+uploaded_file = st.file_uploader("Upload the medical image for analysis", type=["png", "jpg", "jpeg"])
 
 if uploaded_file:
     st.image(uploaded_file, width=300, caption="Uploaded Medical Image")
+    submit_button = st.button("Generate the Analysis")
 
-submit_button = st.button("Generate the Analysis")
+    if submit_button:
+        # Convert uploaded file to bytes
+        image_data = uploaded_file.read()
 
-if submit_button:
-    #process the uploaded image
-    iamge_data=uploaded_file.getvalue()
+        # Prepare the image part for the API
+        image_parts = [
+            {
+                "mime_type": uploaded_file.type,  # get the MIME type of the uploaded file
+                "data": image_data  # directly use the bytes from the uploaded file
+            }
+        ]
 
-    #making our image ready 
-    image_parts = [
-        {
-            "mime_type": "image/jpeg", 
-            "data": Path("image0.jpeg").read_bytes() 
-        }
-    ]
+        # Prepare the prompt parts
+        prompt_parts = [
+            image_parts[0], 
+            system_prompt
+        ]
 
-    # making our prompt ready
-    prompt_parts = [
-        image_part[0], 
-        system_prompt, 
-    ]
+        # Generate a response based on prompt and image
+        st.title("Here is the analysis based on your image")
+        response = model.generate_content(prompt_parts)
 
-     #Generate a response based on prompt and image
-     
-    st.title("Here is the analysis based on your image")
-    response = model.generate_content(prompt_parts)
-
-    st.write(response.text)
-
+        st.write(response.text)
