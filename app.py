@@ -36,7 +36,7 @@ Your insights are invaluable in guiding clinical decisions. Please proceed with 
 
 # Model configuration 
 model = genai.GenerativeModel(
-    model_name="gemini-pro-vision",
+   model_name="gemini-1.5-flash",
     generation_config=generation_config
 )
 
